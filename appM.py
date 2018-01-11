@@ -2,6 +2,7 @@
 import firebase_admin
 from firebase_admin import credentials
 from firebase_admin import db ,auth
+import re, datetime
 import sys, os
 
 cred = credentials.Certificate('./serviceAccountKey.json')
@@ -38,7 +39,7 @@ def printPrayers():
             num=(i+1)
             print ("User UID: " + arr[i])
             for key, val in user.items():
-                print (key +": "+ val)
+                print (key +": "+ str(val))
             i += 1
             print("\n")
     else:
@@ -46,19 +47,34 @@ def printPrayers():
     main_menu()
 
 
+
 def add():
     email = (input("Enter email: "))
+    if not re.match("[^@]+@[^@]+\.[^@]+", email):
+        print ("Wrong Email format")
+        add()
     password = (input("Enter password: "))
     name = (input("Enter full name: "))
-    phoneNumber = (input("Enter Phone: "))
+    phoneNumber = (input("Enter Phone (10 digit): "))
+    while (len(phoneNumber)!=10):
+        phoneNumber = (input("Enter Phone (10 digit): "))
     birthday = (input("Enter birthday date: "))
+    flag =True
+    while (flag):
+        try:
+            datetime.datetime.strptime(birthday, '%d/%m/%Y')
+            flag = False
+        except ValueError:
+            print ("Incorrect data format, should be DD/MM/YYYY")
+            birthday = (input("Enter birthday date: "))
+
     address = (input("Enter address: "))
 
     newUser = auth.create_user(email=email, password=password)
     ref = db.reference('database').child('prayer').child(newUser.uid)
     ref.set({
         'name': name,
-        'isGabay': "false",
+        'gabay': False,
         'address': address,
         'birthday': birthday,
         'phone': phoneNumber,
@@ -90,11 +106,13 @@ def makeManager():
     ref = db.reference('database').child('prayer').get()
     if ref != None :
         while (True):
-            mailRemove = (input("Choose email to make manager:"))
+            mailManager = (input("Choose email to make Gabay:"))
             for uid in ref.keys():
-                if db.reference('database').child('prayer').child(uid).child('email').get() == mailRemove:
-                    db.reference('database').child('prayer').child(uid).child('isGabay').set("true")
+                if db.reference('database').child('prayer').child(uid).child('email').get() == mailManager:
+                    db.reference('database').child('prayer').child(uid).child('gabay').set(True)
                     print(db.reference('database').child('prayer').child(uid).child('name').get() + " is manager now! \n")
+                    a = db.reference('database').child('gabay').child(uid).child('mail').set(mailManager)
+
                     main_menu()
                     return
             print ("can't find this mail")
@@ -146,16 +164,36 @@ menu_actions = {
 # =======================
 #      MAIN PROGRAM
 # =======================
+def makeadmin():
+    newUser = auth.create_user(email='maor@gmail.com', password='123456')
+    ref = db.reference('database').child('admin').child(newUser.uid).set({
+        'userName': 'maor',
+        'code': '123456'})
+def singin():
+    ref = db.reference('database').child('admin').get()
+    if ref != None:
+        while (True):
+            nameAdmin = (input("Enter your userName:"))
+            passAdmin = (input("Enter your password:"))
+            for uid in ref.keys():
+                if db.reference('database').child('admin').child(uid).child('userName').get() == nameAdmin:
+                    if db.reference('database').child('admin').child(uid).child('code').get() == passAdmin:
+                        print("conneted \n\nWelcome " + nameAdmin + ",\n")
+                        main_menu()
+                    else:
+                        print ("Worng password")
 
+            print("please Enter user and password again! \n")
+    else:
+        print("Database is EMPTY! \n I am making default Admin..")
+        makeadmin()
+        print("\n default Admin success!\n")
+        singin()
 # Main Program
 if __name__ == "__main__":
     # Launch main menu
     print("Welcome,\n")
-    main_menu()
-
-
-
-
+    singin()
 
 #printUsers()
 #add()
