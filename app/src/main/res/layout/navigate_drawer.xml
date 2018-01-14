@@ -8,12 +8,6 @@
     android:fitsSystemWindows="true"
     tools:openDrawer="start">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/is_gabay"
-        android:text="false"
-        android:visibility="gone"/>
 
     <include
         layout="@layout/app_bar_main"

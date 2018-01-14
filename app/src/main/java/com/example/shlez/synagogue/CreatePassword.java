@@ -165,7 +165,8 @@ public class CreatePassword extends AppCompatActivity {
 
 
     public void updateUI() {
-        Intent intent = new Intent(this, UserProfile.class);
+        Intent intent = new Intent(this, NavigateDrawer.class);
+        intent.putExtra("isGabay", false);
         startActivity(intent);
     }
 

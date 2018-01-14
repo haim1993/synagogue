@@ -10,9 +10,6 @@
         <item
             android:id="@+id/nav_updates"
             android:title="Weekly Updates" />
-        <item
-            android:id="@+id/nav_tasks"
-            android:title="TO DO" />
     </group>
 
     <item android:title="Information">

@@ -1,13 +1,19 @@
 package com.example.shlez.synagogue;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -16,9 +22,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlacePicker;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -28,7 +39,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.mvc.imagepicker.ImagePicker;
+import com.squareup.picasso.Picasso;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Vector;
 
 public class NavigateDrawer extends AppCompatActivity
@@ -39,8 +54,11 @@ public class NavigateDrawer extends AppCompatActivity
     private FirebaseUser mUser;
     private StorageReference mStorageRef;
     private DatabaseReference mDatabase;
+    private StorageReference profileImageRef;
+    private boolean isGabay;
 
-//    private boolean isGabay = false;
+    int PLACE_PICKER_REQUEST = 1;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +76,38 @@ public class NavigateDrawer extends AppCompatActivity
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
+            @Override
+            public void onDrawerStateChanged(int newState) {
+                if (newState == DrawerLayout.STATE_SETTLING) {
+                    invalidateOptionsMenu();
+                    if (drawer.isDrawerOpen(GravityCompat.START)) {
+//                        Add to nav, current image profile.
+                        String user_id = mUser.getUid();
+                        DatabaseReference imageURL = mDatabase.child("database").child("prayer").child(user_id).child("imageURL");
+                        profileImageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                            @Override
+                            public void onSuccess(Uri uri) {
+                                String full_image_path = uri.getPath();
+                                int index = full_image_path.indexOf("/profile_images/");
+                                String short_image_path = full_image_path.substring(index);
+
+                                imageURL.setValue(short_image_path);
+                                ImageView profile_img = (ImageView) findViewById(R.id.nav_profile_image);
+                                Picasso.with(NavigateDrawer.this).load(uri).into(profile_img);
+                                profile_img.setEnabled(false);
+
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception exception) {
+                                Log.d(TAG, "Can't load existing image.");
+                            }
+                        });
+                    } else { }
+                }
+            }
+        };
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
@@ -70,6 +119,7 @@ public class NavigateDrawer extends AppCompatActivity
         mUser = mAuth.getCurrentUser();
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mStorageRef = FirebaseStorage.getInstance().getReference();
+        profileImageRef = mStorageRef.child("profile_images/" + mUser.getUid().substring(10) + ".jpg");
 
 
 //        Add to nav, current user full name.
@@ -86,8 +136,6 @@ public class NavigateDrawer extends AppCompatActivity
 
 
 //        Add to nav, current user email address.
-//        String email_value = mUser.getEmail();
-//        ((TextView) findViewById(R.id.nav_profile_email)).setText(email_value);
         DatabaseReference email_value = mDatabase.child("database").child("prayer").child(mUser.getUid()).child("email");
         email_value.addValueEventListener(new ValueEventListener() {
             @Override
@@ -101,8 +149,6 @@ public class NavigateDrawer extends AppCompatActivity
     }
 
 
-
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -111,7 +157,7 @@ public class NavigateDrawer extends AppCompatActivity
 
         MenuItem mItem = menu.findItem(R.id.action_add_update);
 
-        boolean isGabay = getIntent().getBooleanExtra("isGabay", false);
+        isGabay = getIntent().getBooleanExtra("isGabay", false);
         if (!isGabay) { mItem.setVisible(false); }
 
         return true;
@@ -131,26 +177,6 @@ public class NavigateDrawer extends AppCompatActivity
     }
 
 
-//    public int getCurrentFragmentId() {
-//        Fragment current_frag = getSupportFragmentManager().findFragmentById(R.id.nav_updates);
-//        if (current_frag != null && current_frag.isVisible()) return current_frag.getId();
-//        current_frag = getSupportFragmentManager().findFragmentById(R.id.nav_logout);
-//
-//        if (current_frag != null && current_frag.isVisible()) return current_frag.getId();
-//
-//        current_frag = getSupportFragmentManager().findFragmentById(R.id.nav_about);
-//        if (current_frag != null && current_frag.isVisible()) return current_frag.getId();
-//
-//        current_frag = getSupportFragmentManager().findFragmentById(R.id.nav_tasks);
-//        if (current_frag != null && current_frag.isVisible()) return current_frag.getId();
-//
-//        current_frag = getSupportFragmentManager().findFragmentById(R.id.nav_profile);
-//        if (current_frag != null && current_frag.isVisible()) return current_frag.getId();
-//
-//        return -1; // couldn't find visible fragment.
-//    }
-
-
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
@@ -159,16 +185,12 @@ public class NavigateDrawer extends AppCompatActivity
 
         Fragment fragment = null;
 
-//        int current_fragment_id = getCurrentFragmentId();
         switch (id) {
             case R.id.nav_profile:
                 fragment = new UserProfile();
                 break;
             case R.id.nav_updates:
                 fragment = new WeeklyUpdates();
-                break;
-            case R.id.nav_tasks:
-                fragment = new Tasks();
                 break;
             case R.id.nav_about:
                 fragment = new AboutUs();
@@ -191,6 +213,54 @@ public class NavigateDrawer extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //        PlacePicker on get location
+        if (requestCode == PLACE_PICKER_REQUEST) {
+            if (resultCode == RESULT_OK) {
+                Place place = PlacePicker.getPlace(this, data);
+                CharSequence address = place.getAddress();
+                mDatabase.child("database").child("prayer").child(mUser.getUid()).child("address").setValue(address);
+                TextView txt_address = (TextView) findViewById(R.id.txt_profile_address);
+                txt_address.setText(address);
+                txt_address.setTextColor(Color.BLACK);
+            }
+        }
+//        ImagePicker on get image
+        else {
+
+            ImagePicker.setMinQuality(600, 600);
+            Bitmap bitmap = ImagePicker.getImageFromResult(this, requestCode, resultCode, data);
+            if (bitmap != null) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                byte[] imageData = baos.toByteArray();
+
+                UploadTask uploadTask = profileImageRef.putBytes(imageData);
+
+                uploadTask.addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception exception) { }
+                }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
+                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                        ImageView profile_img = (ImageView) findViewById(R.id.img_profile_image);
+
+                        String full_image_path = downloadUrl.getPath();
+                        int index = full_image_path.indexOf("/profile_images/");
+                        String short_image_path = full_image_path.substring(index);
+
+                        mDatabase.child("database").child("prayer").child(mUser.getUid()).child("imageURL").setValue(short_image_path);
+                        Picasso.with(NavigateDrawer.this).load(downloadUrl).into(profile_img);
+                    }
+                });
+            }
+        }
     }
 
 
