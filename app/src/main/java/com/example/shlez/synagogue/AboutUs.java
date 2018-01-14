@@ -1,16 +1,11 @@
 package com.example.shlez.synagogue;
 
-import android.content.Context;
-import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.AppCompatDelegate;
-import android.support.v7.widget.Toolbar;
-import android.view.Gravity;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Toast;
-
-import java.util.Calendar;
+import android.view.ViewGroup;
 
 import mehdi.sakout.aboutpage.AboutPage;
 import mehdi.sakout.aboutpage.Element;
@@ -19,14 +14,17 @@ import mehdi.sakout.aboutpage.Element;
  * Created by Shlez on 11/25/17.
  */
 
-public class AboutUs extends AppCompatActivity {
+public class AboutUs extends Fragment {
 
 
     private static final String TAG = "AboutUs";
 
+
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
+        getActivity().setTitle("About");
 
         Element titleElement = new Element();
         titleElement.setTitle("About Synagogue");
@@ -34,16 +32,20 @@ public class AboutUs extends AppCompatActivity {
         versionElement.setTitle("Version 1.0");
 
 
-
-        View aboutPage = new AboutPage(this)
+        View aboutPage = new AboutPage(getActivity())
                 .isRTL(false)
                 .setDescription(getString(R.string.about_description))
-                .setImage(R.drawable.synagogue)
+                .setImage(R.drawable.synagogue_small)
                 .addEmail("shlez1993.hs@gmail.com")
                 .addItem(versionElement)
                 .create();
 
-        setContentView(aboutPage);
+        return aboutPage;
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
     }
 
 }

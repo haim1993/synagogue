@@ -1,19 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    android:orientation="vertical">
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context="com.example.shlez.synagogue.NavigateDrawer"
+    tools:showIn="@layout/app_bar_main"
+    android:id="@+id/fragment_user_profile">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/toolbar_user_profile"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        android:elevation="4dp"
-        android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+    <!--<android.support.v7.widget.Toolbar-->
+        <!--android:id="@+id/toolbar_user_profile"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="?attr/actionBarSize"-->
+        <!--android:background="?attr/colorPrimary"-->
+        <!--android:elevation="4dp"-->
+        <!--android:theme="@style/ThemeOverlay.AppCompat.ActionBar"-->
+        <!--app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />-->
+
 
     <ScrollView
         android:layout_width="fill_parent"
@@ -35,8 +39,7 @@
                 android:layout_height="160dp"
                 android:src="@drawable/camera_icon"
                 app:civ_border_width="2dp"
-                app:civ_border_color="#FF000000"
-                android:onClick="imagePicker"/>
+                app:civ_border_color="#FF000000" />
 
 
             <!--Name frame-->
@@ -116,8 +119,7 @@
                         android:inputType="phone"
                         android:text="+Add"
                         android:textColor="#00BFFF"
-                        android:textSize="16dp"
-                        android:onClick="showSetPhoneNumberDialog"/>
+                        android:textSize="16dp" />
 
                 </RelativeLayout>
             </LinearLayout>
@@ -244,8 +246,7 @@
                         android:inputType="textEmailAddress"
                         android:text="+Add"
                         android:textColor="#00BFFF"
-                        android:textSize="16dp"
-                        android:onClick="showSetLocationPicker"/>
+                        android:textSize="16dp" />
 
                 </RelativeLayout>
             </LinearLayout>
@@ -254,4 +255,4 @@
         </LinearLayout>
 
     </ScrollView>
-</LinearLayout>
+</android.support.constraint.ConstraintLayout>

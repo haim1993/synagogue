@@ -22,7 +22,7 @@ def main_menu():
     print("3. Remove prayer")
     print("4. Make Gabay")
     print("\n0. Quit")
-    choice = input(" >> ")
+    choice = raw_input(" >> ")
     exec_menu(choice)
 
     return
@@ -49,16 +49,13 @@ def printPrayers():
 
 
 def add():
-    email = (input("Enter email: "))
+    email = (raw_input("Enter email: "))
     if not re.match("[^@]+@[^@]+\.[^@]+", email):
         print ("Wrong Email format")
         add()
-    password = (input("Enter password: "))
-    name = (input("Enter full name: "))
-    phoneNumber = (input("Enter Phone (10 digit): "))
-    while (len(phoneNumber)!=10):
-        phoneNumber = (input("Enter Phone (10 digit): "))
-    birthday = (input("Enter birthday date: "))
+    password = (raw_input("Enter password: "))
+    name = (raw_input("Enter full name: "))
+    birthday = (raw_input("Enter birthday date: "))
     flag =True
     while (flag):
         try:
@@ -66,20 +63,19 @@ def add():
             flag = False
         except ValueError:
             print ("Incorrect data format, should be DD/MM/YYYY")
-            birthday = (input("Enter birthday date: "))
+            birthday = (raw_input("Enter birthday date: "))
 
-    address = (input("Enter address: "))
 
     newUser = auth.create_user(email=email, password=password)
     ref = db.reference('database').child('prayer').child(newUser.uid)
     ref.set({
         'name': name,
-        'gabay': False,
-        'address': address,
-        'birthday': birthday,
-        'phone': phoneNumber,
         'email': email,
-
+        'phone': '',
+        'birthday': birthday,
+        'address': '',
+        'isGabay': False,
+        'imageURL': ''
     })
     print (name + " added successfully \n")
     main_menu()
@@ -88,11 +84,13 @@ def remove():
     ref = db.reference('database').child('prayer').get()
     if ref != None :
         while (True):
-            mailRemove = (input("Choose email to delete:"))
+            mailRemove = (raw_input("Choose email to delete:"))
             for uid in ref.keys():
                 if db.reference('database').child('prayer').child(uid).child('email').get() == mailRemove:
                     auth.delete_user(uid)
                     db.reference('database').child('prayer').child(uid).delete()
+                    if db.reference('database').child('gabay').child(uid).child('email').get() == mailRemove:
+                        db.reference('database').child('gabay').child(uid).delete()
                     print(mailRemove + " removed \n")
                     main_menu()
                     return
@@ -106,12 +104,12 @@ def makeManager():
     ref = db.reference('database').child('prayer').get()
     if ref != None :
         while (True):
-            mailManager = (input("Choose email to make Gabay:"))
+            mailManager = (raw_input("Choose email to make Gabay:"))
             for uid in ref.keys():
                 if db.reference('database').child('prayer').child(uid).child('email').get() == mailManager:
-                    db.reference('database').child('prayer').child(uid).child('gabay').set(True)
+                    db.reference('database').child('prayer').child(uid).child('isGabay').set(True)
                     print(db.reference('database').child('prayer').child(uid).child('name').get() + " is manager now! \n")
-                    a = db.reference('database').child('gabay').child(uid).child('mail').set(mailManager)
+                    a = db.reference('database').child('gabay').child(uid).child('email').set(mailManager)
 
                     main_menu()
                     return
@@ -165,16 +163,16 @@ menu_actions = {
 #      MAIN PROGRAM
 # =======================
 def makeadmin():
-    newUser = auth.create_user(email='maor@gmail.com', password='123456')
-    ref = db.reference('database').child('admin').child(newUser.uid).set({
-        'userName': 'maor',
-        'code': '123456'})
-def singin():
+    newUser = auth.create_user(email='admin@app.com', password='App1234')
+    ref = db.reference('database').child('admin').child(newUser.uid).set({ \
+        'userName': 'admin', \
+        'code': 'App1234'})
+def signIn():
     ref = db.reference('database').child('admin').get()
     if ref != None:
         while (True):
-            nameAdmin = (input("Enter your userName:"))
-            passAdmin = (input("Enter your password:"))
+            nameAdmin = (raw_input("Enter your username: "))
+            passAdmin = (raw_input("Enter your password: "))
             for uid in ref.keys():
                 if db.reference('database').child('admin').child(uid).child('userName').get() == nameAdmin:
                     if db.reference('database').child('admin').child(uid).child('code').get() == passAdmin:
@@ -188,12 +186,12 @@ def singin():
         print("Database is EMPTY! \n I am making default Admin..")
         makeadmin()
         print("\n default Admin success!\n")
-        singin()
+        signIn()
 # Main Program
 if __name__ == "__main__":
     # Launch main menu
     print("Welcome,\n")
-    singin()
+    signIn()
 
 #printUsers()
 #add()

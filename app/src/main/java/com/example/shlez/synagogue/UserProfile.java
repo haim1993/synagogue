@@ -1,6 +1,7 @@
 package com.example.shlez.synagogue;
 
 import android.app.Dialog;
+import android.support.v4.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -8,19 +9,19 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import android.support.annotation.Nullable;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuInflater;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ViewFlipper;
 
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
@@ -35,7 +36,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -45,8 +45,6 @@ import com.squareup.picasso.Picasso;
 import org.w3c.dom.Text;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -54,7 +52,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
  * Created by Shlez on 11/21/17.
  */
 
-public class UserProfile extends AppCompatActivity {
+public class UserProfile extends Fragment {
 
 
     private static final String TAG = "UserProfile";
@@ -63,19 +61,53 @@ public class UserProfile extends AppCompatActivity {
     private StorageReference mStorageRef;
     private DatabaseReference mDatabase;
     private StorageReference profileImageRef;
-    final Context context = this;
+    final Context context = getActivity();
 
     int PLACE_PICKER_REQUEST = 1;
 
+
+    @Nullable
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.user_profile);
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_user_profile);
-        toolbar.setTitle("Profile");
-        setSupportActionBar(toolbar);
+        if (container != null) container.removeAllViews();
 
+        View v = inflater.inflate(R.layout.user_profile, container, false);
+
+        ImageView civ = (ImageView) v.findViewById(R.id.img_profile_image);
+        civ.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ImagePicker.pickImage(getActivity(), "Select your image:");
+            }
+        });
+
+        TextView phone_num = (TextView) v.findViewById(R.id.txt_profile_phone);
+        phone_num.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showSetPhoneNumberDialog(v);
+            }
+        });
+
+
+        TextView address = (TextView) v.findViewById(R.id.txt_profile_address);
+        address.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showSetLocationPicker(v);
+            }
+        });
+
+
+        return v;
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        getActivity().setTitle("Profile");
 
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser();
@@ -84,42 +116,6 @@ public class UserProfile extends AppCompatActivity {
         profileImageRef = mStorageRef.child("profile_images/" + mUser.getUid().substring(10) + ".jpg");
 
         updateProfileFields();
-
-    }
-
-
-    //    Menu Action Bar items
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_user_profile, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-//            case R.id.action_user_profile_edit:
-//                startActivity(new Intent(this, EditUserProfile.class));
-//                return true;
-
-            case R.id.action_about:
-                startActivity(new Intent(this, AboutUs.class));
-                return true;
-
-            case R.id.action_user_profile_logout:
-                String email = mAuth.getCurrentUser().getEmail();
-                mAuth.signOut();
-                Toast.makeText(UserProfile.this, email + " signed out.", Toast.LENGTH_SHORT).show();
-                launchMainActivity();
-                return true;
-
-            default:
-                // If we got here, the user's action was not recognized.
-                // Invoke the superclass to handle it.
-                return super.onOptionsItemSelected(item);
-
-        }
     }
 
 
@@ -128,7 +124,7 @@ public class UserProfile extends AppCompatActivity {
         String user_id = mUser.getUid();
 
         //        Set user_image profile image in circle imageview
-        ImageView profile_img = (ImageView) findViewById(R.id.img_profile_image);
+        ImageView profile_img = (ImageView) getActivity().findViewById(R.id.img_profile_image);
         DatabaseReference imageURL = mDatabase.child("database").child("prayer").child(user_id).child("imageURL");
         profileImageRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
             @Override
@@ -137,8 +133,8 @@ public class UserProfile extends AppCompatActivity {
                 int index = full_image_path.indexOf("/profile_images/");
                 String short_image_path = full_image_path.substring(index);
 
-                mDatabase.child("database").child("prayer").child(mUser.getUid()).child("imageURL").setValue(short_image_path);
-                Picasso.with(UserProfile.this).load(uri).into(profile_img);
+                imageURL.setValue(short_image_path);
+                Picasso.with(getActivity()).load(uri).into(profile_img);
                 profile_img.setEnabled(false);
 
             }
@@ -151,7 +147,7 @@ public class UserProfile extends AppCompatActivity {
 
 
         //        Set user_profile name in textview
-        final TextView txt_name = (TextView) findViewById(R.id.txt_profile_name);
+        final TextView txt_name = (TextView) getView().findViewById(R.id.txt_profile_name);
         DatabaseReference fname_value = mDatabase.child("database").child("prayer").child(user_id).child("name");
         fname_value.addValueEventListener(new ValueEventListener() {
             @Override
@@ -167,7 +163,7 @@ public class UserProfile extends AppCompatActivity {
 
 
         //        Set user_profile phone in textview
-        final TextView txt_phone = (TextView) findViewById(R.id.txt_profile_phone);
+        final TextView txt_phone = (TextView) getView().findViewById(R.id.txt_profile_phone);
         DatabaseReference phone_value = mDatabase.child("database").child("prayer").child(user_id).child("phone");
         phone_value.addValueEventListener(new ValueEventListener() {
             @Override
@@ -188,7 +184,7 @@ public class UserProfile extends AppCompatActivity {
 
 
         //        Set user_profile email in textview
-        final TextView txt_email = (TextView) findViewById(R.id.txt_profile_email);
+        final TextView txt_email = (TextView) getView().findViewById(R.id.txt_profile_email);
         DatabaseReference email_value = mDatabase.child("database").child("prayer").child(user_id).child("email");
         email_value.addValueEventListener(new ValueEventListener() {
             @Override
@@ -204,7 +200,7 @@ public class UserProfile extends AppCompatActivity {
 
 
         //        Set user_profile birthday in textview
-        final TextView txt_birthday = (TextView) findViewById(R.id.txt_profile_birthday);
+        final TextView txt_birthday = (TextView) getView().findViewById(R.id.txt_profile_birthday);
         DatabaseReference birthday_value = mDatabase.child("database").child("prayer").child(user_id).child("birthday");
         birthday_value.addValueEventListener(new ValueEventListener() {
             @Override
@@ -220,7 +216,7 @@ public class UserProfile extends AppCompatActivity {
 
 
         //        Set user_address Address in textview
-        final TextView txt_address = (TextView) findViewById(R.id.txt_profile_address);
+        final TextView txt_address = (TextView) getView().findViewById(R.id.txt_profile_address);
         DatabaseReference address_value = mDatabase.child("database").child("prayer").child(user_id).child("address");
         address_value.addValueEventListener(new ValueEventListener() {
             @Override
@@ -233,7 +229,6 @@ public class UserProfile extends AppCompatActivity {
                 }
 
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
                 Log.w(TAG, "loadName:onCancelled", databaseError.toException());
@@ -245,7 +240,8 @@ public class UserProfile extends AppCompatActivity {
     //    Upon user click on +Add on phone column show "Set phone number" dialog.
     public void showSetPhoneNumberDialog(View v) {
         // custom dialog
-        final Dialog dialog = new Dialog(context);
+        Log.w(TAG, "in phone dialog");
+        final Dialog dialog = new Dialog(getContext());
         dialog.setContentView(R.layout.add_phone_number_dialog);
         dialog.setTitle("Enter Your Phone Number");
 
@@ -263,15 +259,10 @@ public class UserProfile extends AppCompatActivity {
 
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count,
-                                          int after) {
-
-
-            }
+                                          int after) { }
 
             @Override
-            public void afterTextChanged(Editable s) {
-
-            }
+            public void afterTextChanged(Editable s) { }
         });
         clear.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -292,22 +283,19 @@ public class UserProfile extends AppCompatActivity {
                     txt_phone.setTextColor(Color.BLACK);
                     dialog.dismiss();
                 } else {
-                    Toast.makeText(UserProfile.this, "Phone Number is not valid", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getActivity(), "Phone Number is not valid", Toast.LENGTH_SHORT).show();
                 }
             }
         });
-
-
         dialog.show();
     }
 
 
     public void showSetLocationPicker(View v) {
-
         PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
 
         try {
-            startActivityForResult(builder.build(this), PLACE_PICKER_REQUEST);
+            getActivity().startActivityForResult(builder.build(getActivity()), PLACE_PICKER_REQUEST);
         } catch (GooglePlayServicesRepairableException e) {
             e.printStackTrace();
         } catch (GooglePlayServicesNotAvailableException e) {
@@ -317,69 +305,59 @@ public class UserProfile extends AppCompatActivity {
 
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-//        PlacePicker on get location
+        //        PlacePicker on get location
         if (requestCode == PLACE_PICKER_REQUEST) {
-            if (resultCode == RESULT_OK) {
-                Place place = PlacePicker.getPlace(UserProfile.this, data);
+            if (resultCode == getActivity().RESULT_OK) {
+                Place place = PlacePicker.getPlace(getActivity(), data);
                 CharSequence address = place.getAddress();
                 mDatabase.child("database").child("prayer").child(mUser.getUid()).child("address").setValue(address);
-                TextView txt_address = (TextView) findViewById(R.id.txt_profile_address);
+                TextView txt_address = (TextView) getView().findViewById(R.id.txt_profile_address);
                 txt_address.setText(address);
                 txt_address.setTextColor(Color.BLACK);
             }
         }
 //        ImagePicker on get image
         else {
-            ImagePicker.setMinQuality(600, 600);
-            Bitmap bitmap = ImagePicker.getImageFromResult(this, requestCode, resultCode, data);
 
+            ImagePicker.setMinQuality(600, 600);
+            Bitmap bitmap = ImagePicker.getImageFromResult(getActivity(), requestCode, resultCode, data);
             if (bitmap != null) {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
                 byte[] imageData = baos.toByteArray();
 
                 UploadTask uploadTask = profileImageRef.putBytes(imageData);
+
                 uploadTask.addOnFailureListener(new OnFailureListener() {
                     @Override
-                    public void onFailure(@NonNull Exception exception) {
-
-                    }
+                    public void onFailure(@NonNull Exception exception) { }
                 }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                         // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
                         Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                        ImageView profile_img = (ImageView) findViewById(R.id.img_profile_image);
+                        ImageView profile_img = (ImageView) getView().findViewById(R.id.img_profile_image);
 
                         String full_image_path = downloadUrl.getPath();
                         int index = full_image_path.indexOf("/profile_images/");
                         String short_image_path = full_image_path.substring(index);
 
                         mDatabase.child("database").child("prayer").child(mUser.getUid()).child("imageURL").setValue(short_image_path);
-                        Picasso.with(UserProfile.this).load(downloadUrl).into(profile_img);
+                        Picasso.with(getContext()).load(downloadUrl).into(profile_img);
                     }
                 });
             }
         }
     }
 
-    public void imagePicker(View view) {
-        // Click on image button
-        ImagePicker.pickImage(this, "Select your image:");
-    }
-
 
     //    Go to MainActivity upon signing out
     public void launchMainActivity() {
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(getActivity(), MainActivity.class);
         startActivity(intent);
     }
 
-    @Override
-    public void onBackPressed() {
-
-    }
 
 }

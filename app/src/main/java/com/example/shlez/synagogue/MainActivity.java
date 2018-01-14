@@ -1,17 +1,22 @@
 package com.example.shlez.synagogue;
 
+import android.app.Fragment;
+import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.AppCompatButton;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,6 +27,13 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 /**
  * Created by Shlez on 11/20/17.
@@ -32,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
     private FirebaseAuth mAuth;
+    private DatabaseReference mDatabase;
 
 
     @Override
@@ -44,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         mAuth = FirebaseAuth.getInstance();
-
+        mDatabase = FirebaseDatabase.getInstance().getReference();
 
 
         final TextView txt_email = (TextView) findViewById(R.id.txt_input_email);
@@ -71,14 +84,10 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void beforeTextChanged(CharSequence s, int start, int count,
-                                                      int after) {
-
-                        }
+                                                      int after) { }
 
                         @Override
-                        public void afterTextChanged(Editable s) {
-
-                        }
+                        public void afterTextChanged(Editable s) { }
                     });
                 }
             }
@@ -114,14 +123,10 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void beforeTextChanged(CharSequence s, int start, int count,
-                                                      int after) {
-
-                        }
+                                                      int after) { }
 
                         @Override
-                        public void afterTextChanged(Editable s) {
-
-                        }
+                        public void afterTextChanged(Editable s) { }
                     });
 
                 }
@@ -224,8 +229,30 @@ public class MainActivity extends AppCompatActivity {
     //    Update User Interface to UserProfile upon sign-in / signed-in
     public void updateUI(FirebaseUser user) {
         if (user != null) {
-            Intent intent = new Intent(this, UserProfile.class);
-            startActivity(intent);
+            String user_id = mAuth.getCurrentUser().getUid();
+            DatabaseReference gabay_reference = mDatabase.child("database").child("prayer").child(user_id).child("isGabay");
+            gabay_reference.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    boolean isGabay = dataSnapshot.getValue(Boolean.class);
+                    Intent intent;
+                    if (isGabay) {
+                        intent = new Intent(MainActivity.this, NavigateDrawer.class);
+                        intent.putExtra("isGabay", true);
+                        startActivity(intent);
+                    }
+                    else {
+                        intent = new Intent(MainActivity.this, NavigateDrawer.class);
+                        intent.putExtra("isGabay", false);
+                        startActivity(intent);
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.w(TAG, "loadName:onCancelled", databaseError.toException());
+                }
+            });
         }
     }
 
