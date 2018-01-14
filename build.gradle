@@ -1,29 +1,69 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+apply plugin: 'com.android.application'
 
-buildscript {
-    repositories {
-        jcenter()
+android {
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
+    defaultConfig {
+        applicationId "com.example.shlez.synagogue"
+        minSdkVersion 18
+        targetSdkVersion 26
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        vectorDrawables.useSupportLibrary = true
     }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:3.0.1'
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
-        classpath 'com.google.gms:google-services:3.1.0'
-    }
-}
-
-allprojects {
-    repositories {
-        jcenter()
-        google()
-        maven {
-            url "https://maven.google.com"
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-        maven { url "https://jitpack.io" }
+    }
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
     }
 }
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+dependencies {
+
+    implementation 'com.google.firebase:firebase-auth:11.6.2'
+    implementation 'com.google.firebase:firebase-database:11.6.2'
+    //noinspection GradleCompatible
+    implementation 'com.android.support:support-v4:26.1.0'
+    implementation 'com.android.support:support-vector-drawable:26.1.0'
+    implementation 'com.google.firebase:firebase-storage:11.6.2'
+    compile 'com.google.firebase:firebase-auth:11.6.2'
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    //noinspection GradleCompatible
+    compile 'com.android.support:appcompat-v7:26.1.0'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.android.support:design:26.1.0'
+    testCompile 'junit:junit:4.12'
+    compile "com.android.support:support-core-utils:26.1.0"
+    compile 'com.github.medyo:android-about-page:1.2.2' // about-page from github
+    compile 'com.github.Mariovc:ImagePicker:1.2.0' // image picker from github
+    compile 'com.squareup.picasso:picasso:2.5.2' // to user picasso uri -> image view
+    compile 'de.hdodenhof:circleimageview:2.2.0' // circle imageview
+//    compile 'com.google.android.gms:play-services-location:11.6.2'
+    implementation 'com.google.android.gms:play-services-places:11.6.2'  // allow PlacePicker
+    //unit test
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'org.mockito:mockito-core:1.10.19'
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    androidTestCompile 'com.android.support.test.uiautomator:uiautomator-v18:2.1.3'
+    androidTestCompile 'com.android.support.test:testing-support-lib:0.1'
+    compile 'com.google.android.gms:play-services-analytics:11.6.2'
 }
 
+
+
+
+
+
+
+
+apply plugin: 'com.google.gms.google-services'
