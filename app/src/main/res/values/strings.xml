@@ -79,5 +79,12 @@
     , Haim Schlesinger, Yedidya Vahnish, Maor Shabtay and Ariel Ben-Amram. Synagogue app, was created
     for the purpose of helping the "Gabay" in the synagogue to schedule the praying hours and to schedule
      the "Aliyot" amongts the prayers.</string>
+    <string name="title_activity_navigation_drawer">NavigationDrawer</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+    <string name="title_activity_main2">Main2Activity</string>
 
 </resources>

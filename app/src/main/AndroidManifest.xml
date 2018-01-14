@@ -7,8 +7,6 @@
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
-
-
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -39,24 +37,23 @@
             android:name=".CreateBirthday"
             android:label="Create Account" />
         <activity
-            android:name=".UserProfile"
-            android:label="Profile" />
+            android:name=".CreateUpdate"
+            android:label="Create Update" />
         <activity
-            android:name=".EditUserProfile"
-            android:label="Edit Profile" />
-        <activity
-            android:name=".AboutUs"
-            android:label="About Us"
-            android:theme="@style/AppTheme"/>
-
+            android:name=".GabayPage"
+            android:label="Gabay Page" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyABQR0VaxYn4vwo2SYJSEalAXhjRjE96IQ" />
-
-        <meta-data android:name="com.google.android.gms.version"
+        <meta-data
+            android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-
+        <activity
+            android:name=".NavigateDrawer"
+            android:label="Weekly Updates"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        </activity>
     </application>
 
 </manifest>

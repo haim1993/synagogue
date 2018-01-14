@@ -17,6 +17,8 @@ public class Prayer implements Serializable {
     String birthday;
     String address;
     String imageURL;
+    boolean isGabay = false;
+
 
 
 //    Parameterless Constructor
@@ -51,5 +53,9 @@ public class Prayer implements Serializable {
 //    ImageURL - Getter & Setter
     public String getImageURL() { return imageURL; }
     public void setImageURL(String imageURL) { this.imageURL = imageURL; }
+
+
+//    isGabay - Getter
+    public boolean isGabay() { return this.isGabay; }
 
 }
