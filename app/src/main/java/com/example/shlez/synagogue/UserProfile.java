@@ -2,6 +2,7 @@ package com.example.shlez.synagogue;
 
 import android.app.Dialog;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -10,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -300,55 +302,6 @@ public class UserProfile extends Fragment {
             e.printStackTrace();
         } catch (GooglePlayServicesNotAvailableException e) {
             e.printStackTrace();
-        }
-    }
-
-
-    @Override
-     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        //        PlacePicker on get location
-        if (requestCode == PLACE_PICKER_REQUEST) {
-            if (resultCode == getActivity().RESULT_OK) {
-                Place place = PlacePicker.getPlace(getActivity(), data);
-                CharSequence address = place.getAddress();
-                mDatabase.child("database").child("prayer").child(mUser.getUid()).child("address").setValue(address);
-                TextView txt_address = (TextView) getView().findViewById(R.id.txt_profile_address);
-                txt_address.setText(address);
-                txt_address.setTextColor(Color.BLACK);
-            }
-        }
-//        ImagePicker on get image
-        else {
-
-            ImagePicker.setMinQuality(600, 600);
-            Bitmap bitmap = ImagePicker.getImageFromResult(getActivity(), requestCode, resultCode, data);
-            if (bitmap != null) {
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-                byte[] imageData = baos.toByteArray();
-
-                UploadTask uploadTask = profileImageRef.putBytes(imageData);
-
-                uploadTask.addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception exception) { }
-                }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
-                        Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                        ImageView profile_img = (ImageView) getView().findViewById(R.id.img_profile_image);
-
-                        String full_image_path = downloadUrl.getPath();
-                        int index = full_image_path.indexOf("/profile_images/");
-                        String short_image_path = full_image_path.substring(index);
-
-                        mDatabase.child("database").child("prayer").child(mUser.getUid()).child("imageURL").setValue(short_image_path);
-                        Picasso.with(getContext()).load(downloadUrl).into(profile_img);
-                    }
-                });
-            }
         }
     }
 
